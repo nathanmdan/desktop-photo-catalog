@@ -329,10 +329,12 @@ while True:
 
     ## VIEW PHOTOS ##
     elif command_input == "gallery":
-        list_albums()
+        albums = list_albums()
         album_input = input("Enter the name of the album to view: ")
-        photo_index = 0
-        photo_viewer(album_input)
+        album = get_album(album_input, albums)
+        if album:
+            photo_index = 0
+            photo_viewer(album_input)
 
     ## CREATE NEW ALBUM ##
     elif command_input == "new album":
