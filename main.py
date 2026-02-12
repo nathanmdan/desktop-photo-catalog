@@ -28,6 +28,17 @@ def list_albums():
     return albums
 
 
+def get_album(album_name, albums):
+    """ Checks if album exists. Returns album if so. """
+    albums = list_albums()
+    for album in albums:
+        if album[1] == album_name:
+            return album
+    
+    print("Album not found. Please try again.")
+    time.sleep(1)
+
+
 def show_photo_tags(photo_id, tag_label):
     """ Prints a list of the current photo's tags """
     query = ("SELECT Tags.name FROM PhotoTags\n"
@@ -152,44 +163,39 @@ def photo_viewer(album_name):
 def import_photos(album_name):
     """ Imports photo(s) into catalog """
     # Check if album exists
-    albums = list_albums()
-    album_found = False
-    for album in albums:
-        if album_found == False:
-            album_id, album_name, album_folder = album
-            if album_input == album_name:
-                album_found = True
+    album = get_album(album_name, albums)
+    if album:
+        album_id = album[0]
 
-                # Use file browser to select photo(s) for import
-                image_paths = filedialog.askopenfilenames(
-                    initialdir=os.getcwd(),
-                    title="Select Images to Import"
-                    )
-                
-                for path in image_paths:
-                    try:
-                        image = Image.open(path)
-                        name = image.filename.split('/')[-1]
-                        photo_params = (name, path, album_id, 0)
-                    except Image.UnidentifiedImageError as error:
-                        print("\nIncompatible file format. Only image files are supported.")
-                        print("Please try again.")
-                        time.sleep(1)
-                        return
-                    
-                    try:
-                        cursor.callproc('sp_import_photo', photo_params)
-                        cnx.commit()
-                        print("Import successful!")
-                        time.sleep(1)
-                    except mysql.connector.Error as error:
-                        print("There was a problem importing your photo(s).")
-                        print(error)
-                        time.sleep(1)
+        # Use file browser to select photo(s) for import
+        image_paths = filedialog.askopenfilenames(
+            initialdir=os.getcwd(),
+            title="Select Images to Import"
+            )
+        
+        for path in image_paths:
 
-    if album_found == False:
-        print("Album not found. Please try again.")
-        time.sleep(1)
+            # Create image object from path
+            try:
+                image = Image.open(path)
+                name = image.filename.split('/')[-1]
+                photo_params = (name, path, album_id, 0)
+            except Image.UnidentifiedImageError as error:
+                print("\nIncompatible file format. Only image files are supported.")
+                print("Please try again.")
+                time.sleep(1)
+                return
+            
+            # Add photo to catalog
+            try:
+                cursor.callproc('sp_import_photo', photo_params)
+                cnx.commit()
+                print("Import successful!")
+                time.sleep(1)
+            except mysql.connector.Error as error:
+                print("There was a problem importing your photo(s).")
+                print(error)
+                time.sleep(1)
 
 
 def create_album(album_params):
