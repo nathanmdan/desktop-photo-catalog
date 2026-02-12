@@ -269,29 +269,27 @@ cursor = cnx.cursor()
 # 'CALL sp_create_tag(?, @new_id);'
 # 'CALL sp_add_photo_tag(?, ?, @new_id);'
 
-# print("\nWelcome to your photo catalog!")
+# Welcome message
+welcome = \
+"\n**Welcome to your photo catalog!**" \
+"\nStay organized with photo albums and easily find the photos you're looking for with custom descriptive tags." \
+"\nYour catalog is a local database, so your files remain safe and untouched on your computer, and nothing is uploaded to the cloud." \
+"\n" \
+"\nAlbums - Organize your photos with albums. Create albums with the 'new album' command. Albums do not move the image files on your computer." \
+"\nWhen importing photos, you'll be asked to choose an album to import into. If no albums are found, you will be asked to create one." \
+"\n" \
+"\nGallery - Choose an album to view and its contents will display in a photo viewer on your desktop." \
+"\nStep through the album's photos and add descriptive tags to use when searching your catalog." \
+"\n" \
+"\nTags - Make your catalog searchable with custom descriptive tags. Create new tags with the 'new tag' command, or create tags directly in the gallery photo viewer." \
+"\nTags allow you to search across your entire catalog regardless of " \
+"\n" \
+"\nSearch (coming soon...) - Search across your entire catalog by tags." \
+"\nAdd the results of your search to a new album, or export the image files themselves to a single location on your computer for easier sharing with others." \
+"\n"
+print(welcome)
 
 while True:
-    # Welcome message
-    welcome = \
-    "\n**Welcome to your photo catalog!**" \
-    "\nStay organized with photo albums and easily find the photos you're looking for with custom descriptive tags." \
-    "\nYour catalog is a local database, so your files remain safe and untouched on your computer, and nothing is uploaded to the cloud." \
-    "\n" \
-    "\nAlbums - Organize your photos with albums. Create albums with the 'new album' command. Albums do not move the image files on your computer." \
-    "\nWhen importing photos, you'll be asked to choose an album to import into. If no albums are found, you will be asked to create one." \
-    "\n" \
-    "\nGallery - Choose an album to view and its contents will display in a photo viewer on your desktop." \
-    "\nStep through the album's photos and add descriptive tags to use when searching your catalog." \
-    "\n" \
-    "\nTags - Make your catalog searchable with custom descriptive tags. Create new tags with the 'new tag' command, or create tags directly in the gallery photo viewer." \
-    "\nTags allow you to search across your entire catalog regardless of " \
-    "\n" \
-    "\nSearch (coming soon...) - Search across your entire catalog by tags." \
-    "\nAdd the results of your search to a new album, or export the image files themselves to a single location on your computer for easier sharing with others." \
-    "\n"
-    print(welcome)
-
     # Show all available commands
     commands = \
     "\nCommand      Description" \
@@ -314,13 +312,14 @@ while True:
 
         if len(albums) == 0:
             print(f"You don't have any albums yet. Let's make one.")
-            new_album_input = input("Enter the name of your new album: ")
-            album_params = (new_album_input, None, 0)
+            album_input = input("Enter the name of your new album: ")
+            album_params = (album_input, None, 0)
             create_album(album_params)
-
-        # Choose album to import photo(s) into
-        album_input = input("Select an album for your imported photos: ")
-        import_photos(album_input)
+            import_photos(album_input)
+        else:
+            # Choose album to import photo(s) into
+            album_input = input("Select an album for your imported photos: ")
+            import_photos(album_input)
 
     ## VIEW PHOTOS ##
     elif command_input == "gallery":
