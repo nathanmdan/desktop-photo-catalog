@@ -12,3 +12,5 @@ z_garbage/gui/pyuiWidgets/__pycache__/__init__.cpython-314.pyc
 z_garbage/gui/pyuiWidgets/__pycache__/imageLabel.cpython-314.pyc
 z_garbage/gui/pyuiWidgets/__pycache__/listBox.cpython-314.pyc
 z_garbage/gui/pyuiWidgets/__pycache__/scrollWidget.cpython-314.pyc
+__pycache__/config.cpython-314.pyc
+config.py
