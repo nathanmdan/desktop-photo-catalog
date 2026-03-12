@@ -9,7 +9,7 @@ import mysql.connector
 import config
 
 def list_albums():
-    """ Lists the names of all albums in the catalog """
+    """ List the names of all albums in the catalog """
     cursor.execute("SELECT * FROM Albums")
 
     # Make list of albums from query results
@@ -29,7 +29,7 @@ def list_albums():
 
 
 def get_album(album_name, albums):
-    """ Checks if album exists. Returns album if so. """
+    """ Check if album exists. Returns album if so. """
     albums = list_albums()
     for album in albums:
         if album[1] == album_name:
@@ -40,7 +40,7 @@ def get_album(album_name, albums):
 
 
 def show_photo_tags(photo_id, tag_label):
-    """ Prints a list of the current photo's tags """
+    """ Print a list of the current photo's tags """
     query = ("SELECT Tags.name FROM PhotoTags\n"
              "LEFT JOIN Tags ON PhotoTags.tagID = Tags.tagID\n"
              "WHERE PhotoTags.photoID = %s;")
@@ -85,7 +85,7 @@ def _photo_viewer_prev(photo_label, photo_list, photo_id_name_list, tag_label):
 
 
 def photo_viewer(album_name):
-    """ Displays all photos in an album with next/previous navigation """
+    """ Display all photos in an album with next/previous navigation """
     global photo_index
 
     window = tk.Tk()
@@ -161,7 +161,7 @@ def photo_viewer(album_name):
 
 
 def import_photos(album_name):
-    """ Imports photo(s) into catalog """
+    """ Import photo(s) into catalog """
     # Check if album exists
     album = get_album(album_name, albums)
     if album:
@@ -199,7 +199,7 @@ def import_photos(album_name):
 
 
 def create_album(album_params):
-    """ Creates new photo album """
+    """ Create new photo album """
     try:
         cursor.callproc('sp_create_album', album_params)
         cnx.commit()
@@ -212,7 +212,7 @@ def create_album(album_params):
 
 
 def create_tag(tag_params):
-    """ Creates new descriptive tag """
+    """ Create new descriptive tag """
     try:
         cursor.callproc('sp_create_tag', tag_params)
         cnx.commit()
@@ -225,7 +225,7 @@ def create_tag(tag_params):
 
 
 def add_tag_to_photo(photo_id_name_list, tag_entry, tag_label):
-    """ Adds a descriptive tag to a photo """
+    """ Add a descriptive tag to a photo """
     # Store user entry text into variable
     tag_name = tag_entry.get()
 
