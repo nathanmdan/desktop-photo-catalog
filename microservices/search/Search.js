@@ -1,3 +1,7 @@
+// CS361 Software Engineering I
+// Search microservice
+// Programmers: Gabriela Aquino, Caleb Jacoby
+
 const fs = require('fs/promises');
 const express = require ('express');
 const zmq = require ("zeromq");
