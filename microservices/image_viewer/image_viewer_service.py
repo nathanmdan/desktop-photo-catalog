@@ -1,90 +1,53 @@
 # CS361 Software Engineering I
-# Metadata Reader microservice
-# Programmer: Nathan Dan
+# Image Viewer microservice
+# Programmers: Nathan Dan, Gabriela Aquino
 
 """
-Display an image from a URL or a local file path specified in a JSON file 
+Generate a PhotoImage object for viewing in a Tkinter GUI.
+
+ZeroMQ messages sent to the service must be enclosed within a list.
+Example: [ "path/to/file.jpg" ]
+
+The shutdown signal "Q" must also be enclosed within a list: [ "Q" ]
 """
 
-from sys import exit
-from time import sleep
-import json
-import requests
-from requests.exceptions import *
-from io import BytesIO
-from PIL import Image, ImageTk
-import tkinter as tk
+from PIL import Image, ImageOps
+import zmq
 
-MAX_SIZE = (1280, 1280)
-JSON_FILE = 'message.json'
+ADDRESS = "tcp://localhost:5555"
 
-while True:
-    sleep(10)
+try:
+    # Initialize ZeroMQ server to listen for requests
+    context = zmq.Context()
+    socket = context.socket(zmq.REP)
+    socket.bind(ADDRESS)
 
-    data = None
-    with open(JSON_FILE, 'r') as file:
-        try:
-            # Parse JSON data into dict
-            data = json.load(file)
-        except:
-            continue
+    while True:
+        # Listen for request
+        message = socket.recv_pyobj()
+        # print("Received request from client.")
 
-    if data['path'] != '':
-        # Get image path from dict
-        file_path = data['path']
+        # Close server if 'Quit' request received
+        if message[0] == "Q":
+            # print("Quit request received by server.")
+            break
+            
+        img_path = message[0]
 
-        # Create Tk GUI
-        root = tk.Tk()
-        root.title('Image Viewer')
+        # Generate an Image object for Tkinter
+        img_pil = Image.open(img_path)
+        img_pil = ImageOps.contain(img_pil, (600, 600))
 
-        # Check whether path is a URL or a local path
-        response = None
-        try:
-            response = requests.get(file_path)
-        except (MissingSchema, InvalidSchema):
-            # Path is not a URL
-            pass
-        except ConnectionError as error:
-            print('A connection error occurred.')
-            print(error)
-            with open(JSON_FILE, 'w') as file:
-                    data = {'path': '', 'status': error}
-                    json.dump(data, file)
-            continue
+        # Reply with PhotoImage object
+        socket.send_pyobj(img_pil)
 
-        
-        image = None
-        if response:
-            # Path is a URL
-            if response.status_code == 200:
-                # If URL contains an image, load image as an Image object
-                content_type = response.headers.get('Content-Type')
-                if content_type == 'image/jpeg':
-                    image = Image.open(BytesIO(response.content))
-        else:
-            try:
-                # Path is a local file path
-                image = Image.open(file_path)
-            except FileNotFoundError as error:
-                # Update status in JSON file
-                with open(JSON_FILE, 'w') as file:
-                    data = {'path': '', 'status': error}
-                    json.dump(data, file)
-                continue
+    context.destroy()
 
-        # Downscale image if size is greater than max_size
-        image.thumbnail(MAX_SIZE)
-        tk_image = ImageTk.PhotoImage(image)
+except KeyboardInterrupt as error:
+    print("Keyboard interrupt detected. Closing service.")
+    print(error)
+    context.destroy()
 
-        # Create label widget to view image
-        label = tk.Label(root, image=tk_image)
-        label.pack()
-        label.image = tk_image
-
-        # Update status in JSON file
-        with open(JSON_FILE, 'w') as file:
-            data = {'path': '', 'status': 'success'}
-            json.dump(data, file)
-
-        # Display image
-        root.mainloop()
+except zmq.ZMQError as error:
+    print("Server error:", error)
+    context.destroy()
