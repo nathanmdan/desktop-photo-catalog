@@ -1,7 +1,7 @@
 config = {
-    'user':       'root',
-    'password':   'gorb9689',
-    'host':       'localhost',
-    'database':   'cs361_photo_catalog',
+    'user':       '',
+    'password':   '',
+    'host':       '',
+    'database':   'photo_catalog',
     'raise_on_warnings': True
 }
