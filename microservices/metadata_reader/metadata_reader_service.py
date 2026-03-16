@@ -4,9 +4,13 @@
 
 """
 Extract metadata from a local image file.
+
+ZeroMQ messages sent to the service must be enclosed within a list.
+Example: [ "file.jpg", "path/to/file.jpg" ]
+
+The shutdown signal "Q" must also be enclosed within a list: [ "Q" ]
 """
 
-import os
 from PIL import Image, TiffImagePlugin
 from PIL.ExifTags import TAGS
 import zmq
@@ -29,7 +33,7 @@ try:
             # print("Quit request received by server.")
             break
 
-        img_path = message[0]
+        img_name, img_path = message
 
         # Construct PIL image object to access metadata
         image = None
@@ -43,12 +47,9 @@ try:
                 "metadata_extended": metadata_extended
             }
 
-            # Get absolute file path
-            abs_path = os.path.abspath(img_path)
-
             # Get basic metadata
-            metadata_basic["Filepath"] = abs_path
-            metadata_basic["Filename"] = image.filename
+            metadata_basic["Filename"] = img_name
+            metadata_basic["Filepath"] = img_path
             metadata_basic["Format"] = image.format
             metadata_basic["Format Description"] = image.format_description
             metadata_basic["Width"] = image.width
@@ -63,16 +64,6 @@ try:
                         metadata_extended[tag_name] = float(value)
                     else:
                         metadata_extended[tag_name] = value
-            
-            # # PRINT METADATA FOR TROUBLESHOOTING
-            # print('Metadata - Basic:')
-            # for k, v in metadata_basic.items():
-            #     print(f'{k}: {v}')
-            # if metadata_extended.items():
-            #     print()
-            #     print('Metadata - Extended:')
-            #     for k, v in metadata_extended.items():
-            #         print(f'{k}: {v}')
             
             # Reply with metadata dict
             socket.send_pyobj(metadata_all)

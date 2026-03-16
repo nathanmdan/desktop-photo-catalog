@@ -34,20 +34,25 @@ try:
             
         img_path = message[0]
 
-        # Generate an Image object for Tkinter
-        img_pil = Image.open(img_path)
-        img_pil = ImageOps.contain(img_pil, (600, 600))
+        # Generate and resize an Image object for Tkinter
+        try:
+            img_pil = Image.open(img_path)
+            img_pil = ImageOps.contain(img_pil, (500, 500))
 
-        # Reply with PhotoImage object
-        socket.send_pyobj(img_pil)
+            # Reply with PhotoImage object
+            socket.send_pyobj(img_pil)
+            
+            context.destroy()
 
-    context.destroy()
+        except FileNotFoundError as error:
+            socket.send_pyobj(error)
 
 except KeyboardInterrupt as error:
     print("Keyboard interrupt detected. Closing service.")
     print(error)
-    context.destroy()
 
 except zmq.ZMQError as error:
     print("Server error:", error)
+
+finally:
     context.destroy()

@@ -34,20 +34,20 @@ try:
             break
         
         export_details = message[0]
-        print(f"export_details =", export_details)
-        data, dest_dir, name = export_details
-        print(data)
-        print(dest_dir)
-        print(name)
+        column_names, data, dest_dir, name = export_details
 
+        name = name.replace(" ", "-")
+        column_names = ",".join(column_names)
+    
         timestamp = time.strftime("%Y-%m-%d_%H%M%S")
-        file_name = dest_dir + name + "/" + timestamp + ".csv"
+        file_name = dest_dir + "/" + name + "-" + timestamp + ".csv"
 
         try:
-            # Break out rows into comma-separated values
+            # Break out query rows into comma-separated values
             with open(file_name, "w") as out_file:
+                out_file.write(column_names + "\n")
                 for row in data:
-                    row_str = ",".join(row)+"\n"
+                    row_str = ",".join(map(str, row)) + "\n"
                     out_file.write(row_str)
 
             socket.send_string("Export successful!")

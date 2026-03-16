@@ -10,8 +10,11 @@ import config   # MySQL database credentials
 import zmq
 
 def zmq_timeout_handler(wait_time):
-    """ Poll response from ZeroMQ server.
-    If no response after n milliseconds, close main program. """
+    """
+    Poll response from ZeroMQ server.
+    If no response after n milliseconds, close main program.
+    """
+
     events = socket.poll(wait_time)
     if events == 0:
         print("No response from server. Please investigate.\n")
@@ -22,6 +25,7 @@ def zmq_timeout_handler(wait_time):
 
 def list_albums():
     """ List the names of all albums in the catalog """
+
     # Query database for all albums and save as list
     cursor.execute("SELECT * FROM Albums")
     albums = cursor.fetchall()
@@ -41,6 +45,7 @@ def list_albums():
 
 def get_album(album_name, albums):
     """ Check if album exists. Returns album if so. """
+
     # Query database for all albums and save as list
     cursor.execute("SELECT * FROM Albums")
     albums = cursor.fetchall()
@@ -55,6 +60,7 @@ def get_album(album_name, albums):
 
 def show_photo_tags(photo_id, tag_label):
     """ Display a photo's descriptive tags in a Tkinter window """
+
     query = ("SELECT Tags.name FROM PhotoTags\n"
              "LEFT JOIN Tags ON PhotoTags.tagID = Tags.tagID\n"
              "WHERE PhotoTags.photoID = %s;")
@@ -70,19 +76,24 @@ def show_photo_tags(photo_id, tag_label):
     tag_label.config(text=f"Tags: {tags_str}")
 
 
-def show_metadata(photo_id, metadata_label):
+def show_metadata(photo_id, metadata_keys_label, metadata_values_label):
     """ Display a photo's metadata in a Tkinter window """
-    # Get photo's file path
-    query = ("SELECT Photos.path\n"
-             "WHERE Photo.photoId = %s;")
+
+    # Get photo's filename and path
+    query = ("SELECT name, path FROM Photos\n"
+             "WHERE photoId = %s;")
     params = (photo_id,)
     cursor.execute(query, params)
-    photo_path = cursor.fetchall()
+    query_results = cursor.fetchall()
+
+    # Unpack name and path from row list
+    photo_name, photo_path = query_results[0]
 
     # Call Metadata Reader microservice to get current photo's metadata
     socket.connect(METADATA_READER_ADDR)
-    print("Sending a request to Metadata Reader microservice...")
-    data = [photo_path]
+    # print("Sending a request to Metadata Reader microservice...")
+
+    data = [photo_name, photo_path]
     socket.send_pyobj(data)
 
     # Handle microservice hangups
@@ -90,7 +101,7 @@ def show_metadata(photo_id, metadata_label):
 
     # Decode reply from server
     message = socket.recv_pyobj()
-    print(f"Server sent back a reply.")
+    # print(f"Server sent back a reply.")
 
     # Disconnect from server
     socket.disconnect(METADATA_READER_ADDR)
@@ -99,21 +110,31 @@ def show_metadata(photo_id, metadata_label):
     metadata_basic = metadata_dict['metadata_basic']
     metadata_extended = metadata_dict['metadata_extended']
 
-    # Convert metadata dicts to string for Tkinter text label
-    metadata_list = ""
-    for entry_name, entry_value in metadata_basic:
-        metadata_list.append(f"{entry_name}: {entry_value}")
+    # Convert metadata dicts to key and value strings for Tkinter labels
+    metadata_basic_keys = ""
+    metadata_basic_values = ""
+    for key, value in metadata_basic.items():
+        metadata_basic_keys = metadata_basic_keys + str(key) + "\n"
+        metadata_basic_values = metadata_basic_values + str(value) + "\n"
+
+    metadata_extended_keys = ""
+    metadata_extended_values = ""
+    for key, value in metadata_extended.items():
+        metadata_extended_keys = metadata_extended_keys + str(key) + "\n"
+        metadata_extended_values = metadata_extended_values + str(value) + "\n"
+
+    metadata_keys = metadata_basic_keys + metadata_extended_values
+    metadata_values = metadata_basic_values + metadata_extended_values
     
-    for entry_name, entry_value in metadata_extended:
-        metadata_list.append(f"{entry_name}: {entry_value}")
-
-    metadata_str = metadata_list.join("\n")
-    metadata_label.config(text=f"Metadata:\n{metadata_str}")
+    metadata_keys_label.config(text=metadata_keys)
+    metadata_values_label.config(text=metadata_values)
 
 
-def _photo_viewer_next(photo_label, photo_list, photo_id_name_list, tag_label):
+def _photo_viewer_next(labels, photo_list, photo_id_name_list):
     global photo_index
-    
+
+    photo_label, metadata_keys_label, metadata_values_label, tag_label = labels
+
     if photo_index < (len(photo_list) - 1):
         photo_index += 1
         photo_label.config(image=photo_list[photo_index])
@@ -123,10 +144,13 @@ def _photo_viewer_next(photo_label, photo_list, photo_id_name_list, tag_label):
     
     photo_id = photo_id_name_list[photo_index][0]
     show_photo_tags(photo_id, tag_label)
+    show_metadata(photo_id, metadata_keys_label, metadata_values_label)
 
 
-def _photo_viewer_prev(photo_label, photo_list, photo_id_name_list, tag_label):
+def _photo_viewer_prev(labels, photo_list, photo_id_name_list):
     global photo_index
+
+    photo_label, metadata_keys_label, metadata_values_label, tag_label = labels
 
     if photo_index > 0:
         photo_index -= 1
@@ -137,10 +161,12 @@ def _photo_viewer_prev(photo_label, photo_list, photo_id_name_list, tag_label):
 
     photo_id = photo_id_name_list[photo_index][0]
     show_photo_tags(photo_id, tag_label)
+    show_metadata(photo_id, metadata_keys_label, metadata_values_label)
 
 
 def photo_viewer(album_name):
     """ Display album photos with file info and next/previous navigation """
+
     global photo_index
 
     window = tk.Tk()
@@ -171,7 +197,7 @@ def photo_viewer(album_name):
 
         # Call Image Viewer microservice to render PIL Image from path
         socket.connect(IMAGE_VIEWER_ADDR)
-        print("Sending a request to Image Viewer microservice...")
+        # print("Sending a request to Image Viewer microservice...")
         data = [path]
         socket.send_pyobj(data)
 
@@ -180,7 +206,19 @@ def photo_viewer(album_name):
 
         # Get reply from server
         message = socket.recv_pyobj()
-        print(f"Server sent back a reply.")
+        # print(f"Server sent back a reply.")
+
+        # Error handling: Photo not found
+        if type(message) == FileNotFoundError:
+            print(
+                "\n" \
+                "Error: Photo(s) not found. Files may have moved after " \
+                "being added to your catalog.\n" \
+                "Please restore all files to their original paths.")
+            window.destroy()
+            time.sleep(2)
+            return
+
         img_pil = message
         
         # Disconnect from server
@@ -191,24 +229,30 @@ def photo_viewer(album_name):
         photo_list.append(img_tk)
         
     # Make viewer UI
-    photo_frame = tk.Frame(window, bg="#444444", width=700, height=700)
-    photo_frame.pack()
+    photo_frame = tk.Frame(window, bg="#444444", width=800, height=800)
+    photo_frame.pack(fill="both", expand=True)
     photo_label = tk.Label(photo_frame, image=photo_list[photo_index])
-    photo_label.pack()
+    photo_label.pack(expand=True)
     
     # Unpack current photo ID and photo name from tuple.
     # 'photo_name' is not currently being used, but could be used to add the
     # filename beneath the current photo.
     photo_id, photo_name = photo_id_name_list[photo_index]
 
-    # # Add Metadata window to photo viewer
-    # metadata_frame = tk.Frame(window)
-    # metadata_frame.pack(side=tk.RIGHT)
-    # metadata_label = tk.Label(metadata_frame, text="")
-    # metadata_label.pack()
+    # Add Metadata window to photo viewer
+    metadata_frame = tk.Frame(window)
+    metadata_frame.pack(side=tk.BOTTOM)
+    metadata_keys_label = tk.Label(
+        metadata_frame, text="", justify=tk.RIGHT
+    )
+    metadata_values_label = tk.Label(
+        metadata_frame, text="", justify=tk.LEFT
+    )
+    metadata_keys_label.pack(side=tk.LEFT, padx=10, pady=10)
+    metadata_values_label.pack(side=tk.RIGHT, padx=10, pady=10)
 
-    # # Populate Metadata window with current photo's metadata
-    # show_metadata(photo_id, metadata_label)
+    # Populate Metadata window with current photo's metadata
+    show_metadata(photo_id, metadata_keys_label, metadata_values_label)
 
     # Add Tags window to photo viewer
     tag_frame = tk.Frame(window)
@@ -238,14 +282,17 @@ def photo_viewer(album_name):
     # Add next/previous buttons
     button_frame = tk.Frame(window)
     button_frame.pack(side=tk.BOTTOM)
+    labels = [
+        photo_label, metadata_keys_label, metadata_values_label, tag_label
+    ]
     tk.Button(
         button_frame, text="Next", command=lambda: _photo_viewer_next(
-            photo_label, photo_list, photo_id_name_list, tag_label
+            labels, photo_list, photo_id_name_list
         )
     ).pack(side=tk.RIGHT)
     tk.Button(
         button_frame, text="Previous", command=lambda: _photo_viewer_prev(
-            photo_label, photo_list, photo_id_name_list, tag_label
+            labels, photo_list, photo_id_name_list
         )
     ).pack(side=tk.LEFT)
 
@@ -254,6 +301,7 @@ def photo_viewer(album_name):
 
 def import_photos(album_name):
     """ Import photo(s) into catalog """
+
     # Check if album exists
     album = get_album(album_name, albums)
     if album:
@@ -273,62 +321,74 @@ def import_photos(album_name):
         
         window.destroy()
         
-        for path in image_paths:
-
+        successful_imports = 0
+        for i in range(len(image_paths)):
             # Create image object from path
             try:
-                image = Image.open(path)
+                image = Image.open(image_paths[i])
                 name = image.filename.split('/')[-1]
-                photo_params = (name, path, album_id, 0)
+                photo_params = (name, image_paths[i], album_id, 0)
             except Image.UnidentifiedImageError as error:
                 print(
-                    "\nIncompatible file format." \
-                    "Only image files are supported."
+                    f"\n{name} is in an incompatible file format. \
+                    Skipping photo."
                 )
-                print("Please try again.")
-                time.sleep(1)
-                return
+                continue
             
             # Add photo to catalog
             try:
+                print(f"Importing photo {i + 1} of {len(image_paths)}...")
                 cursor.callproc("sp_import_photo", photo_params)
                 cnx.commit()
-                print("Import successful!")
-                time.sleep(1)
+                successful_imports += 1
             except mysql.connector.Error as error:
-                print("There was a problem importing your photo(s).")
-                print(error)
+                print("Import cancelled due to error:", error)
+                print("Please try again.")
                 time.sleep(1)
+                return
+        
+        failed_imports = len(image_paths) - successful_imports
+        plural = "s" if successful_imports > 1 else ""
+
+        print(f"\n{successful_imports} photo{plural} added to catalog.")
+        if successful_imports != len(image_paths):
+            plural = "" if failed_imports == 1 else "s"
+            print(f"{failed_imports} photo{plural} failed to import.")
+        
+        time.sleep(1)
 
 
 def create_album(album_params):
     """ Create new photo album """
+
     try:
         cursor.callproc('sp_create_album', album_params)
         cnx.commit()
-        print(f"New album '{album_params[0]}' created.")
+        print(f"\nNew album '{album_params[0]}' created.")
         time.sleep(1)
     except mysql.connector.Error as error:
-        print("There was a problem creating your album.")
+        print("\nThere was a problem creating your album.")
         print(error)
         time.sleep(1)
 
 
 def create_tag(tag_params):
     """ Create new descriptive tag """
+
     try:
         cursor.callproc("sp_create_tag", tag_params)
         cnx.commit()
-        print(f"New tag '{tag_params[0]}' created.")
+        print(f"\nNew tag '{tag_params[0]}' created.")
         time.sleep(1)
     except mysql.connector.Error as error:
-        print("There was a problem creating your tag.")
+        print("\nThere was a problem creating your tag.")
         print(error)
         time.sleep(1)
 
 
 def add_tag_to_photo(photo_id_name_list, tag_entry, tag_label):
     """ Add a descriptive tag to a photo """
+
     # Store user entry text into variable
     tag_name = tag_entry.get()
 
@@ -362,11 +422,9 @@ def add_tag_to_photo(photo_id_name_list, tag_entry, tag_label):
         # Clear text entry box
         tag_entry.delete(0, tk.END)
 
-        time.sleep(1)
     except mysql.connector.Error as error:
         print("There was a problem tagging your photo.")
         print(error)
-        time.sleep(1)
 
 
 def copy_photos(src_paths, dest_dir):
@@ -374,16 +432,14 @@ def copy_photos(src_paths, dest_dir):
     
     path_pairs = []
     for path in src_paths:
-        # print("File path:", path)
         filename = path.split('/')[-1]
         dest_path = f"{dest_dir}/{filename}"
         path_pair = (path, dest_path)
-        # print("Path pair:", path_pair)
         path_pairs.append(path_pair)
 
     # Call File Copy microservice to copy photos to new location
     socket.connect(FILE_COPY_ADDR)
-    print("Sending a request to File Copy microservice...")
+    # print("Sending a request to File Copy microservice...")
     data = [path_pairs]
     socket.send_pyobj(data)
 
@@ -392,8 +448,7 @@ def copy_photos(src_paths, dest_dir):
 
     # Decode reply from server
     message = socket.recv()
-    time.sleep(1)
-    print(f"Server sent back: {message.decode()}")
+    print("\n" + message.decode())
     time.sleep(1)
 
     # Disconnect from server
@@ -402,23 +457,19 @@ def copy_photos(src_paths, dest_dir):
 
 def export_catalog(dest_dir):
     """ Export catalog information to a .csv file """
-    # Query v_all_photos for a clean table of essential catalog information
 
-    ###################################################################
-    ## TO-DO: UPDATE QUERY TO HANDLE MULTIPLE TAGS ON A SINGLE PHOTO ##
-    ###################################################################
-    
+    # Query v_all_photos for a clean table of essential catalog information  
     query = ("SELECT * FROM v_all_photos;")
     cursor.execute(query)
+    column_names = cursor.column_names   
     query_results = cursor.fetchall()
-
-    print("query_results =", query_results)
+    
     name = "My Catalog"
-    export_details = [query_results, dest_dir, name]
+    export_details = [column_names, query_results, dest_dir, name]
     
     # Call Downloader microservice to export catalog info to .csv file
     socket.connect(DOWNLOADER_ADDR)
-    print("Sending a request to Downloader microservice...")
+    # print("Sending a request to Downloader microservice...")
     data = [export_details]
     socket.send_pyobj(data)
 
@@ -427,16 +478,16 @@ def export_catalog(dest_dir):
 
     # Decode reply from server
     message = socket.recv()
-    time.sleep(1)
-    print(f"Server sent back: {message.decode()}")  
+    print("\n" + message.decode())
     time.sleep(1)
 
     # Disconnect from server
-    socket.disconnect(DOWNLOADER_ADDR)  
+    socket.disconnect(DOWNLOADER_ADDR)
 
 
 def close_zmq(servers):
     """ Close connection to ZeroMQ servers """
+
     global socket
     server = None
     print("Closing microservices...\n")
@@ -542,12 +593,12 @@ welcome = \
 "Create new tags with the 'new tag' command, or create tags directly in the " \
     "gallery photo viewer." \
 "\n\n" \
-"Search (coming soon...) - Search across your entire catalog by tags." \
-"\n" \
-"Add the results of your search to a new album, or export the image files " \
-    "themselves to a single location on your computer for easier sharing " \
-    "with others." \
-"\n"
+# "Search (coming soon...) - Search across your entire catalog by tags." \
+# "\n" \
+# "Add the results of your search to a new album, or export the image files " \
+#     "themselves to a single location on your computer for easier sharing " \
+#     "with others." \
+# "\n"
 print(welcome)
 
 # Enclose main loop within a try-except block to handle KeyboardInterrupts
@@ -605,7 +656,7 @@ try:
             if len(albums) == 0:
                 print(
                     "No albums in catalog. " \
-                    "Enter 'new album' to make your first album."
+                    "Choose 'new album' to make your first album."
                 )
                 time.sleep(2)
             else:
