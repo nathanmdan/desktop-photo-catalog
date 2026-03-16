@@ -1,4 +1,3 @@
-# CS361 Software Engineering I
 # Metadata Reader microservice
 # Programmer: Nathan Dan
 

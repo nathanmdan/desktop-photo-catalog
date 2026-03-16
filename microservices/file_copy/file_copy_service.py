@@ -1,4 +1,3 @@
-# CS361 Software Engineering I
 # File Copy microservice
 # Programmer: Nathan Dan
 

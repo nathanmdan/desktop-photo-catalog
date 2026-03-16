@@ -1,4 +1,4 @@
-# CS361 Course Project: Desktop Photo Catalog
+# Desktop Photo Catalog
 # Author: Nathan Dan
 
 import os, sys, time, subprocess

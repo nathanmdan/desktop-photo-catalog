@@ -1,4 +1,3 @@
-import sys, time
 from pathlib import Path
 import zmq
 

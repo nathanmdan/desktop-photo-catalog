@@ -1,3 +1,5 @@
+# A test program demonstrating the Image Viewer microservice
+
 import zmq
 
 context = zmq.Context()
