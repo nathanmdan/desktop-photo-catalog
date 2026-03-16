@@ -1,16 +1,23 @@
-z_garbage/gui/assets/images/picsum_981-600x600.jpg
-z_garbage/tk_tut.py
 db/photo_catalog_db_diagram.mwb
 db/photo_catalog_db_diagram.mwb.bak
-z_garbage/test_commit.py
-z_garbage/gui/main.py
-z_garbage/gui/pyuiWidgets/__init__.py
-z_garbage/gui/pyuiWidgets/imageLabel.py
-z_garbage/gui/pyuiWidgets/listBox.py
-z_garbage/gui/pyuiWidgets/scrollWidget.py
-z_garbage/gui/pyuiWidgets/__pycache__/__init__.cpython-314.pyc
-z_garbage/gui/pyuiWidgets/__pycache__/imageLabel.cpython-314.pyc
-z_garbage/gui/pyuiWidgets/__pycache__/listBox.cpython-314.pyc
-z_garbage/gui/pyuiWidgets/__pycache__/scrollWidget.cpython-314.pyc
 __pycache__/config.cpython-314.pyc
 config.py
+scratchpad.py
+.gitignore
+db/photo_catalog_ddl_20260209.sql
+microservices/image_viewer/image_viewer_service_old.py
+My Catalog2026-03-14_082450.csv
+demo/more images/fruit_0003.jpg
+demo/more images/fruit_0014.jpg
+demo/more images/motorbike_0003.jpg
+demo/more images/motorbike_0015.jpg
+demo/sample images/airplane_0000.jpg
+demo/sample images/airplane_0002.jpg
+demo/sample images/car_0000.jpg
+demo/sample images/car_0006.jpg
+demo/sample images/cat_0000.jpg
+demo/sample images/cat_0008.jpg
+demo/sample images/dog_0000.jpg
+demo/sample images/dog_0008.jpg
+demo/sample images/flower_0000.jpg
+demo/sample images/flower_0004.jpg
