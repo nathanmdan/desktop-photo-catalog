@@ -41,8 +41,6 @@ try:
 
             # Reply with PhotoImage object
             socket.send_pyobj(img_pil)
-            
-            context.destroy()
 
         except FileNotFoundError as error:
             socket.send_pyobj(error)
