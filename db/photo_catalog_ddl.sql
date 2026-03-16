@@ -8,22 +8,22 @@ SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 
 -- -----------------------------------------------------
--- Schema cs361_photo_catalog
+-- Schema photo_catalog
 -- -----------------------------------------------------
-DROP SCHEMA IF EXISTS `cs361_photo_catalog` ;
+DROP SCHEMA IF EXISTS `photo_catalog` ;
 
 -- -----------------------------------------------------
--- Schema cs361_photo_catalog
+-- Schema photo_catalog
 -- -----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS `cs361_photo_catalog` DEFAULT CHARACTER SET utf8 ;
-USE `cs361_photo_catalog` ;
+CREATE SCHEMA IF NOT EXISTS `photo_catalog` DEFAULT CHARACTER SET utf8 ;
+USE `photo_catalog` ;
 
 -- -----------------------------------------------------
--- Table `cs361_photo_catalog`.`Folders`
+-- Table `photo_catalog`.`Folders`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `cs361_photo_catalog`.`Folders` ;
+DROP TABLE IF EXISTS `photo_catalog`.`Folders` ;
 
-CREATE TABLE IF NOT EXISTS `cs361_photo_catalog`.`Folders` (
+CREATE TABLE IF NOT EXISTS `photo_catalog`.`Folders` (
   `folderID` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   `parentID` INT NULL,
@@ -33,18 +33,18 @@ CREATE TABLE IF NOT EXISTS `cs361_photo_catalog`.`Folders` (
   UNIQUE INDEX `folderID_UNIQUE` (`folderID` ASC),
   CONSTRAINT `fk_folders_folders_parentID`
     FOREIGN KEY (`parentID`)
-    REFERENCES `cs361_photo_catalog`.`Folders` (`folderID`)
+    REFERENCES `photo_catalog`.`Folders` (`folderID`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `cs361_photo_catalog`.`Albums`
+-- Table `photo_catalog`.`Albums`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `cs361_photo_catalog`.`Albums` ;
+DROP TABLE IF EXISTS `photo_catalog`.`Albums` ;
 
-CREATE TABLE IF NOT EXISTS `cs361_photo_catalog`.`Albums` (
+CREATE TABLE IF NOT EXISTS `photo_catalog`.`Albums` (
   `albumID` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   `folderID` INT NULL,
@@ -54,18 +54,18 @@ CREATE TABLE IF NOT EXISTS `cs361_photo_catalog`.`Albums` (
   UNIQUE INDEX `albumID_UNIQUE` (`albumID` ASC),
   CONSTRAINT `fk_albums_folders_folderID`
     FOREIGN KEY (`folderID`)
-    REFERENCES `cs361_photo_catalog`.`Folders` (`folderID`)
+    REFERENCES `photo_catalog`.`Folders` (`folderID`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `cs361_photo_catalog`.`Photos`
+-- Table `photo_catalog`.`Photos`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `cs361_photo_catalog`.`Photos` ;
+DROP TABLE IF EXISTS `photo_catalog`.`Photos` ;
 
-CREATE TABLE IF NOT EXISTS `cs361_photo_catalog`.`Photos` (
+CREATE TABLE IF NOT EXISTS `photo_catalog`.`Photos` (
   `photoID` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NOT NULL,
   `path` MEDIUMTEXT NOT NULL,
@@ -75,18 +75,18 @@ CREATE TABLE IF NOT EXISTS `cs361_photo_catalog`.`Photos` (
   UNIQUE INDEX `photoID_UNIQUE` (`photoID` ASC),
   CONSTRAINT `fk_photos_albums_albumID`
     FOREIGN KEY (`albumID`)
-    REFERENCES `cs361_photo_catalog`.`Albums` (`albumID`)
+    REFERENCES `photo_catalog`.`Albums` (`albumID`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `cs361_photo_catalog`.`Tags`
+-- Table `photo_catalog`.`Tags`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `cs361_photo_catalog`.`Tags` ;
+DROP TABLE IF EXISTS `photo_catalog`.`Tags` ;
 
-CREATE TABLE IF NOT EXISTS `cs361_photo_catalog`.`Tags` (
+CREATE TABLE IF NOT EXISTS `photo_catalog`.`Tags` (
   `tagID` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`tagID`),
@@ -96,11 +96,11 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `cs361_photo_catalog`.`PhotoTags`
+-- Table `photo_catalog`.`PhotoTags`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `cs361_photo_catalog`.`PhotoTags` ;
+DROP TABLE IF EXISTS `photo_catalog`.`PhotoTags` ;
 
-CREATE TABLE IF NOT EXISTS `cs361_photo_catalog`.`PhotoTags` (
+CREATE TABLE IF NOT EXISTS `photo_catalog`.`PhotoTags` (
   `photoTagID` INT NOT NULL AUTO_INCREMENT,
   `photoID` INT NOT NULL,
   `tagID` INT NOT NULL,
@@ -111,23 +111,23 @@ CREATE TABLE IF NOT EXISTS `cs361_photo_catalog`.`PhotoTags` (
   UNIQUE INDEX `photoID_tagID_UNIQUE` (`photoID` ASC, `tagID` ASC),
   CONSTRAINT `fk_phototags_photos_photoID`
     FOREIGN KEY (`photoID`)
-    REFERENCES `cs361_photo_catalog`.`Photos` (`photoID`)
+    REFERENCES `photo_catalog`.`Photos` (`photoID`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_phototags_photos_tagID`
     FOREIGN KEY (`tagID`)
-    REFERENCES `cs361_photo_catalog`.`Tags` (`tagID`)
+    REFERENCES `photo_catalog`.`Tags` (`tagID`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `cs361_photo_catalog`.`Metadata`
+-- Table `photo_catalog`.`Metadata`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `cs361_photo_catalog`.`Metadata` ;
+DROP TABLE IF EXISTS `photo_catalog`.`Metadata` ;
 
-CREATE TABLE IF NOT EXISTS `cs361_photo_catalog`.`Metadata` (
+CREATE TABLE IF NOT EXISTS `photo_catalog`.`Metadata` (
   `metadataID` INT NOT NULL AUTO_INCREMENT,
   `body` MEDIUMTEXT NOT NULL,
   `photoID` INT NOT NULL,
@@ -135,18 +135,18 @@ CREATE TABLE IF NOT EXISTS `cs361_photo_catalog`.`Metadata` (
   UNIQUE INDEX `metadataID_UNIQUE` (`metadataID` ASC),
   CONSTRAINT `fk_metadata_photos_photoID`
     FOREIGN KEY (`photoID`)
-    REFERENCES `cs361_photo_catalog`.`Photos` (`photoID`)
+    REFERENCES `photo_catalog`.`Photos` (`photoID`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `cs361_photo_catalog`.`Thumbnails`
+-- Table `photo_catalog`.`Thumbnails`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `cs361_photo_catalog`.`Thumbnails` ;
+DROP TABLE IF EXISTS `photo_catalog`.`Thumbnails` ;
 
-CREATE TABLE IF NOT EXISTS `cs361_photo_catalog`.`Thumbnails` (
+CREATE TABLE IF NOT EXISTS `photo_catalog`.`Thumbnails` (
   `thumbnailID` INT NOT NULL AUTO_INCREMENT,
   `path` MEDIUMTEXT NOT NULL,
   `photoID` INT NOT NULL,
@@ -154,27 +154,27 @@ CREATE TABLE IF NOT EXISTS `cs361_photo_catalog`.`Thumbnails` (
   UNIQUE INDEX `thumbnailID_UNIQUE` (`thumbnailID` ASC),
   CONSTRAINT `fk_thumbnails_photos_photoID`
     FOREIGN KEY (`photoID`)
-    REFERENCES `cs361_photo_catalog`.`Photos` (`photoID`)
+    REFERENCES `photo_catalog`.`Photos` (`photoID`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
-USE `cs361_photo_catalog` ;
+USE `photo_catalog` ;
 
 -- -----------------------------------------------------
--- Placeholder table for view `cs361_photo_catalog`.`v_all_photos`
+-- Placeholder table for view `photo_catalog`.`v_all_photos`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `cs361_photo_catalog`.`v_all_photos` (`Album` INT, `PhotoID` INT, `FileName` INT, `FilePath` INT, `Tags` INT);
+CREATE TABLE IF NOT EXISTS `photo_catalog`.`v_all_photos` (`Album` INT, `PhotoID` INT, `FileName` INT, `FilePath` INT, `Tags` INT);
 
 -- -----------------------------------------------------
 -- procedure sp_create_album
 -- -----------------------------------------------------
 
-USE `cs361_photo_catalog`;
-DROP procedure IF EXISTS `cs361_photo_catalog`.`sp_create_album`;
+USE `photo_catalog`;
+DROP procedure IF EXISTS `photo_catalog`.`sp_create_album`;
 
 DELIMITER $$
-USE `cs361_photo_catalog`$$
+USE `photo_catalog`$$
 CREATE PROCEDURE sp_create_album (
 	IN p_name varchar(45),
     IN p_folder_id int,
@@ -213,11 +213,11 @@ DELIMITER ;
 -- procedure sp_import_photo
 -- -----------------------------------------------------
 
-USE `cs361_photo_catalog`;
-DROP procedure IF EXISTS `cs361_photo_catalog`.`sp_import_photo`;
+USE `photo_catalog`;
+DROP procedure IF EXISTS `photo_catalog`.`sp_import_photo`;
 
 DELIMITER $$
-USE `cs361_photo_catalog`$$
+USE `photo_catalog`$$
 CREATE PROCEDURE sp_import_photo (
     IN p_name varchar(255),
     IN p_path mediumtext,
@@ -249,11 +249,11 @@ DELIMITER ;
 -- procedure sp_create_tag
 -- -----------------------------------------------------
 
-USE `cs361_photo_catalog`;
-DROP procedure IF EXISTS `cs361_photo_catalog`.`sp_create_tag`;
+USE `photo_catalog`;
+DROP procedure IF EXISTS `photo_catalog`.`sp_create_tag`;
 
 DELIMITER $$
-USE `cs361_photo_catalog`$$
+USE `photo_catalog`$$
 CREATE PROCEDURE sp_create_tag (
     IN p_name varchar(45),
     OUT p_new_tag_id int
@@ -279,11 +279,11 @@ DELIMITER ;
 -- procedure sp_add_photo_tag
 -- -----------------------------------------------------
 
-USE `cs361_photo_catalog`;
-DROP procedure IF EXISTS `cs361_photo_catalog`.`sp_add_photo_tag`;
+USE `photo_catalog`;
+DROP procedure IF EXISTS `photo_catalog`.`sp_add_photo_tag`;
 
 DELIMITER $$
-USE `cs361_photo_catalog`$$
+USE `photo_catalog`$$
 CREATE PROCEDURE sp_add_photo_tag (
     IN p_photo_id int,
     IN p_tag_id int,
@@ -309,11 +309,11 @@ END$$
 DELIMITER ;
 
 -- -----------------------------------------------------
--- View `cs361_photo_catalog`.`v_all_photos`
+-- View `photo_catalog`.`v_all_photos`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `cs361_photo_catalog`.`v_all_photos`;
-DROP VIEW IF EXISTS `cs361_photo_catalog`.`v_all_photos` ;
-USE `cs361_photo_catalog`;
+DROP TABLE IF EXISTS `photo_catalog`.`v_all_photos`;
+DROP VIEW IF EXISTS `photo_catalog`.`v_all_photos` ;
+USE `photo_catalog`;
 CREATE  OR REPLACE VIEW v_all_photos AS
 SELECT
 	Albums.name AS Album,
