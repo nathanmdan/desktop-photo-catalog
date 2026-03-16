@@ -1,4 +1,3 @@
-# CS361 Software Engineering I
 # Downloader Microservice
 # Programmers: Caleb Jacoby, Jessica Crews
 # Modified by Nathan Dan to satisfy requirements of main program

@@ -6,6 +6,7 @@ scratchpad.py
 .gitignore
 db/photo_catalog_ddl_20260209.sql
 microservices/image_viewer/image_viewer_service_old.py
+microservices/image_viewer/image_viewer_test_program.py
 My Catalog2026-03-14_082450.csv
 demo/more images/fruit_0003.jpg
 demo/more images/fruit_0014.jpg

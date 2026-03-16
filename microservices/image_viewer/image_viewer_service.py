@@ -1,4 +1,3 @@
-# CS361 Software Engineering I
 # Image Viewer microservice
 # Programmers: Nathan Dan, Gabriela Aquino
 
